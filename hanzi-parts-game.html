@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>汉字部件匹配游戏</title>
+<style>
+:root {
+  --primary: #e74c3c;
+  --primary-light: #ff6b6b;
+  --secondary: #3498db;
+  --success: #27ae60;
+  --danger: #e74c3c;
+  --warning: #f39c12;
+  --bg: #f0f2f5;
+  --card: #ffffff;
+  --text: #2c3e50;
+  --text-light: #7f8c8d;
+  --border: #e0e0e0;
+  --shadow: 0 4px 20px rgba(0,0,0,0.1);
+  --radius: 16px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ========== 开始界面 ========== */
+#startScreen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.start-card {
+  background: var(--card);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 40px 32px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+}
+.start-card h1 {
+  font-size: 26px;
+  margin-bottom: 8px;
+  color: var(--primary);
+}
+.start-card .subtitle {
+  font-size: 15px;
+  color: var(--text-light);
+  margin-bottom: 28px;
+}
+.mode-section {
+  margin-bottom: 24px;
+}
+.mode-section h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+.mode-btn {
+  display: inline-block;
+  padding: 14px 20px;
+  margin: 6px;
+  background: #f8f9fa;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 130px;
+}
+.mode-btn:hover { border-color: var(--primary); }
+.mode-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+.count-btn {
+  display: inline-block;
+  width: 70px;
+  height: 50px;
+  line-height: 46px;
+  margin: 4px;
+  background: #f8f9fa;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.count-btn:hover { border-color: var(--secondary); }
+.count-btn.active {
+  background: var(--secondary);
+  color: #fff;
+  border-color: var(--secondary);
+}
+.start-btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 8px;
+}
+.start-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(231,76,60,0.3); }
+
+/* ========== 游戏界面 ========== */
+#gameScreen {
+  display: none;
+  min-height: 100vh;
+  padding: 16px;
+}
+.game-header {
+  max-width: 600px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.progress-info {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-light);
+}
+.progress-info strong { color: var(--primary); font-size: 16px; }
+.progress-bar {
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+.score-info {
+  text-align: right;
+  font-size: 14px;
+}
+.score-info .correct { color: var(--success); font-weight: 700; font-size: 18px; }
+.score-info .wrong { color: var(--danger); font-weight: 700; font-size: 18px; }
+
+.game-main {
+  max-width: 600px;
+  margin: 0 auto;
+}
+.question-info {
+  text-align: center;
+  margin-bottom: 12px;
+  font-size: 15px;
+  color: var(--text-light);
+}
+.question-info .structure-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 6px;
+}
+.structure-tag.tb { background: #e8f0fe; color: var(--secondary); }
+.structure-tag.lr { background: #fef0e8; color: var(--primary); }
+
+/* 汉字显示区域 */
+.char-display {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 32px 24px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  margin-bottom: 20px;
+}
+.char-display .meaning {
+  font-size: 14px;
+  color: var(--text-light);
+  margin-bottom: 8px;
+}
+.char-display .pinyin {
+  font-size: 16px;
+  color: var(--secondary);
+  margin-bottom: 16px;
+  font-style: italic;
+}
+
+/* 残缺汉字拼图 */
+.puzzle-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  margin: 20px 0;
+  min-height: 120px;
+}
+.puzzle-slot {
+  width: 100px;
+  height: 100px;
+  border: 3px dashed var(--border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  color: var(--text-light);
+  background: #fafafa;
+  position: relative;
+  transition: all 0.2s;
+}
+.puzzle-slot.tb { flex-direction: column; gap: 2px; }
+.puzzle-slot.tb .sub-slot {
+  width: 90px;
+  height: 45px;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  transition: all 0.2s;
+}
+.puzzle-slot.tb .sub-slot.filled {
+  border-style: solid;
+  border-color: var(--success);
+  background: #e8f8f0;
+}
+.puzzle-slot.lr .sub-slot {
+  width: 45px;
+  height: 90px;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  transition: all 0.2s;
+}
+.puzzle-slot.lr .sub-slot.filled {
+  border-style: solid;
+  border-color: var(--success);
+  background: #e8f8f0;
+}
+.puzzle-slot .sub-slot.drag-over {
+  border-color: var(--secondary);
+  background: #e8f0fe;
+}
+.puzzle-slot .sub-slot.correct {
+  border-color: var(--success) !important;
+  background: #e8f8f0 !important;
+  animation: correctPulse 0.5s;
+}
+.puzzle-slot .sub-slot.wrong {
+  border-color: var(--danger) !important;
+  background: #fde8e8 !important;
+  animation: wrongShake 0.4s;
+}
+@keyframes correctPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+@keyframes wrongShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* 已完成的完整汉字显示 */
+.completed-char {
+  font-size: 64px;
+  color: var(--success);
+  animation: correctPulse 0.5s;
+}
+
+/* 部件拖拽区域 */
+.parts-tray {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 20px 16px;
+  box-shadow: var(--shadow);
+  margin-top: 16px;
+}
+.parts-tray h4 {
+  font-size: 14px;
+  color: var(--text-light);
+  margin-bottom: 12px;
+  text-align: center;
+}
+.parts-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  min-height: 70px;
+}
+.part-tile {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #fff, #f8f9fa);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  cursor: grab;
+  user-select: none;
+  transition: all 0.2s;
+  touch-action: none;
+}
+.part-tile:hover {
+  border-color: var(--secondary);
+  box-shadow: 0 2px 12px rgba(52,152,219,0.2);
+  transform: translateY(-2px);
+}
+.part-tile:active { cursor: grabbing; }
+.part-tile.used {
+  opacity: 0.3;
+  pointer-events: none;
+}
+.part-tile.dragging { opacity: 0.5; }
+
+/* 反馈区域 */
+.feedback {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 16px;
+  min-height: 30px;
+  transition: all 0.3s;
+}
+.feedback.correct { color: var(--success); }
+.feedback.wrong { color: var(--danger); }
+.feedback .hint {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+/* 庆祝特效 */
+#celebration {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  animation: confettiFall 2s ease-out forwards;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+.celebration-text {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--primary);
+  text-shadow: 0 2px 10px rgba(255,255,255,0.8);
+  animation: celebrateText 1.5s ease-out forwards;
+  z-index: 10000;
+  pointer-events: none;
+}
+@keyframes celebrateText {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  30% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  70% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+}
+
+/* 按钮 */
+.btn {
+  display: inline-block;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover { background: #c0392b; }
+.btn-secondary {
+  background: #fff;
+  color: var(--text);
+  border: 2px solid var(--border);
+}
+.btn-secondary:hover { border-color: var(--primary); }
+.btn-success {
+  background: var(--success);
+  color: #fff;
+}
+.game-controls {
+  max-width: 600px;
+  margin: 16px auto;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* ========== 结果界面 ========== */
+#resultScreen {
+  display: none;
+  min-height: 100vh;
+  padding: 20px;
+}
+.result-card {
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--card);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 32px 24px;
+}
+.result-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.result-header h2 { font-size: 24px; color: var(--primary); }
+.result-stats {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.stat-box {
+  text-align: center;
+  padding: 16px 24px;
+  border-radius: 14px;
+  min-width: 100px;
+}
+.stat-box.correct { background: #e8f8f0; }
+.stat-box.wrong { background: #fde8e8; }
+.stat-box .num { font-size: 32px; font-weight: 800; }
+.stat-box.correct .num { color: var(--success); }
+.stat-box.wrong .num { color: var(--danger); }
+.stat-box .label { font-size: 13px; color: var(--text-light); }
+
+/* 错题表 */
+.error-section {
+  margin-top: 24px;
+}
+.error-section h3 {
+  font-size: 18px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.error-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.error-table th {
+  background: #f8f9fa;
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  font-weight: 600;
+}
+.error-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.error-table .correct-answer { color: var(--success); font-weight: 600; }
+.error-table .wrong-answer { color: var(--danger); text-decoration: line-through; }
+.no-errors {
+  text-align: center;
+  padding: 24px;
+  color: var(--success);
+  font-size: 16px;
+}
+.result-actions {
+  margin-top: 28px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* 部首统计 */
+.radical-stats {
+  margin-top: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+.radical-stats h4 {
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+.radical-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.radical-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 13px;
+}
+.radical-tag .count {
+  background: var(--secondary);
+  color: #fff;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+@media (max-width: 500px) {
+  .puzzle-slot { width: 80px; height: 80px; }
+  .puzzle-slot.tb .sub-slot { width: 72px; height: 36px; font-size: 28px; }
+  .puzzle-slot.lr .sub-slot { width: 36px; height: 72px; font-size: 28px; }
+  .part-tile { width: 52px; height: 52px; font-size: 26px; }
+  .completed-char { font-size: 52px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== 开始界面 ========== -->
+<div id="startScreen">
+  <div class="start-card">
+    <h1>🧩 汉字部件匹配游戏</h1>
+    <p class="subtitle">拖动部件补全残缺汉字，学习上下与左右结构</p>
+
+    <div class="mode-section">
+      <h3>📝 选择结构</h3>
+      <button class="mode-btn active" data-mode="all">全部</button>
+      <button class="mode-btn" data-mode="上下">上下结构</button>
+      <button class="mode-btn" data-mode="左右">左右结构</button>
+    </div>
+
+    <div class="mode-section">
+      <h3>🔢 题目数量</h3>
+      <button class="count-btn" data-count="5">5题</button>
+      <button class="count-btn active" data-count="10">10题</button>
+      <button class="count-btn" data-count="15">15题</button>
+      <button class="count-btn" data-count="20">20题</button>
+    </div>
+
+    <button class="start-btn" onclick="startGame()">开始游戏 🚀</button>
+  </div>
+</div>
+
+<!-- ========== 游戏界面 ========== -->
+<div id="gameScreen">
+  <div class="game-header">
+    <div class="progress-info">
+      第 <strong id="currentQ">1</strong> / <strong id="totalQ">10</strong> 题
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div class="score-info">
+      <span class="correct">✅ <span id="correctCount">0</span></span><br>
+      <span class="wrong">❌ <span id="wrongCount">0</span></span>
+    </div>
+  </div>
+
+  <div class="game-main">
+    <div class="question-info" id="questionInfo"></div>
+    <div class="char-display" id="charDisplay"></div>
+
+    <div class="parts-tray">
+      <h4>👇 拖动下方部件到正确位置</h4>
+      <div class="parts-container" id="partsContainer"></div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <div class="game-controls">
+    <button class="btn btn-secondary" onclick="skipQuestion()">跳过 ⏭</button>
+    <button class="btn btn-secondary" onclick="quitGame()">退出 🚪</button>
+  </div>
+</div>
+
+<!-- ========== 结果界面 ========== -->
+<div id="resultScreen">
+  <div class="result-card">
+    <div class="result-header">
+      <h2 id="resultTitle">🎯 游戏结束</h2>
+      <p id="resultMessage"></p>
+    </div>
+
+    <div class="result-stats">
+      <div class="stat-box correct">
+        <div class="num" id="finalCorrect">0</div>
+        <div class="label">答对</div>
+      </div>
+      <div class="stat-box wrong">
+        <div class="num" id="finalWrong">0</div>
+        <div class="label">答错</div>
+      </div>
+      <div class="stat-box" style="background:#e8f0fe;">
+        <div class="num" id="finalRate" style="color:var(--secondary);">0%</div>
+        <div class="label">正确率</div>
+      </div>
+    </div>
+
+    <div class="error-section">
+      <h3>📋 错题归纳</h3>
+      <div id="errorListContainer"></div>
+    </div>
+
+    <div class="radical-stats" id="radicalStats"></div>
+
+    <div class="result-actions">
+      <button class="btn btn-primary" onclick="restartGame()">再玩一次 🔄</button>
+      <button class="btn btn-secondary" onclick="exportErrorCSV()">导出错题 📄</button>
+      <button class="btn btn-secondary" onclick="goHome()">返回首页 🏠</button>
+    </div>
+  </div>
+</div>
+
+<!-- 庆祝特效层 -->
+<div id="celebration"></div>
+
+<script>
+// ========== 汉字数据 ==========
+const CHARS = [{"char":"爱","structure":"上下","part1":"爫","part2":"友","pinyin":"ài","meaning":"love/爱"},{"char":"爸","structure":"上下","part1":"父","part2":"巴","pinyin":"bà","meaning":"dad/爸爸"},{"char":"字","structure":"上下","part1":"宀","part2":"子","pinyin":"zì","meaning":"character/字"},{"char":"是","structure":"上下","part1":"日","part2":"正","pinyin":"shì","meaning":"is/是"},{"char":"号","structure":"上下","part1":"口","part2":"丂","pinyin":"hào","meaning":"number/号"},{"char":"今","structure":"上下","part1":"人","part2":"乛","pinyin":"jīn","meaning":"today/今"},{"char":"会","structure":"上下","part1":"人","part2":"云","pinyin":"huì","meaning":"can/会"},{"char":"分","structure":"上下","part1":"八","part2":"刀","pinyin":"fēn","meaning":"divide/分"},{"char":"关","structure":"上下","part1":"丷","part2":"天","pinyin":"guān","meaning":"close/关"},{"char":"全","structure":"上下","part1":"人","part2":"王","pinyin":"quán","meaning":"all/全"},{"char":"合","structure":"上下","part1":"人","part2":"一","pinyin":"hé","meaning":"combine/合"},{"char":"名","structure":"上下","part1":"夕","part2":"口","pinyin":"míng","meaning":"name/名字"},{"char":"各","structure":"上下","part1":"夂","part2":"口","pinyin":"gè","meaning":"each/各"},{"char":"点","structure":"上下","part1":"占","part2":"灬","pinyin":"diǎn","meaning":"point/点"},{"char":"早","structure":"上下","part1":"日","part2":"十","pinyin":"zǎo","meaning":"early/早"},{"char":"星","structure":"上下","part1":"日","part2":"生","pinyin":"xīng","meaning":"star/星"},{"char":"想","structure":"上下","part1":"相","part2":"心","pinyin":"xiǎng","meaning":"think/想"},{"char":"意","structure":"上下","part1":"音","part2":"心","pinyin":"yì","meaning":"meaning/意"},{"char":"思","structure":"上下","part1":"田","part2":"心","pinyin":"sī","meaning":"think/思"},{"char":"志","structure":"上下","part1":"士","part2":"心","pinyin":"zhì","meaning":"will/志"},{"char":"忘","structure":"上下","part1":"亡","part2":"心","pinyin":"wàng","meaning":"forget/忘"},{"char":"急","structure":"上下","part1":"刍","part2":"心","pinyin":"jí","meaning":"anxious/急"},{"char":"息","structure":"上下","part1":"自","part2":"心","pinyin":"xī","meaning":"breath/息"},{"char":"您","structure":"上下","part1":"你","part2":"心","pinyin":"nín","meaning":"you(polite)/您"},{"char":"茶","structure":"上下","part1":"艹","part2":"余","pinyin":"chá","meaning":"tea/茶"},{"char":"菜","structure":"上下","part1":"艹","part2":"采","pinyin":"cài","meaning":"dish/菜"},{"char":"花","structure":"上下","part1":"艹","part2":"化","pinyin":"huā","meaning":"flower/花"},{"char":"苹","structure":"上下","part1":"艹","part2":"平","pinyin":"píng","meaning":"apple/苹"},{"char":"药","structure":"上下","part1":"艹","part2":"约","pinyin":"yào","meaning":"medicine/药"},{"char":"笔","structure":"上下","part1":"竹","part2":"毛","pinyin":"bǐ","meaning":"pen/笔"},{"char":"答","structure":"上下","part1":"竹","part2":"合","pinyin":"dá","meaning":"answer/答"},{"char":"简","structure":"上下","part1":"竹","part2":"间","pinyin":"jiǎn","meaning":"simple/简"},{"char":"男","structure":"上下","part1":"田","part2":"力","pinyin":"nán","meaning":"male/男"},{"char":"界","structure":"上下","part1":"田","part2":"介","pinyin":"jiè","meaning":"boundary/界"},{"char":"留","structure":"上下","part1":"卯","part2":"田","pinyin":"liú","meaning":"stay/留"},{"char":"奋","structure":"上下","part1":"大","part2":"田","pinyin":"fèn","meaning":"strive/奋"},{"char":"果","structure":"上下","part1":"日","part2":"木","pinyin":"guǒ","meaning":"fruit/果"},{"char":"里","structure":"上下","part1":"日","part2":"土","pinyin":"lǐ","meaning":"inside/里"},{"char":"量","structure":"上下","part1":"旦","part2":"里","pinyin":"liàng","meaning":"amount/量"},{"char":"景","structure":"上下","part1":"日","part2":"京","pinyin":"jǐng","meaning":"scene/景"},{"char":"音","structure":"上下","part1":"立","part2":"日","pinyin":"yīn","meaning":"sound/音"},{"char":"客","structure":"上下","part1":"宀","part2":"各","pinyin":"kè","meaning":"guest/客"},{"char":"家","structure":"上下","part1":"宀","part2":"豕","pinyin":"jiā","meaning":"home/家"},{"char":"完","structure":"上下","part1":"宀","part2":"元","pinyin":"wán","meaning":"finish/完"},{"char":"定","structure":"上下","part1":"宀","part2":"疋","pinyin":"dìng","meaning":"fixed/定"},{"char":"宝","structure":"上下","part1":"宀","part2":"玉","pinyin":"bǎo","meaning":"treasure/宝"},{"char":"空","structure":"上下","part1":"穴","part2":"工","pinyin":"kōng","meaning":"empty/空"},{"char":"岁","structure":"上下","part1":"山","part2":"夕","pinyin":"suì","meaning":"year/岁"},{"char":"岩","structure":"上下","part1":"山","part2":"石","pinyin":"yán","meaning":"rock/岩"},{"char":"当","structure":"上下","part1":"⺌","part2":"彐","pinyin":"dāng","meaning":"should/当"},{"char":"光","structure":"上下","part1":"⺌","part2":"一","pinyin":"guāng","meaning":"light/光"},{"char":"色","structure":"上下","part1":"⺈","part2":"巴","pinyin":"sè","meaning":"color/色"},{"char":"鱼","structure":"上下","part1":"⺈","part2":"田","pinyin":"yú","meaning":"fish/鱼"},{"char":"老","structure":"上下","part1":"耂","part2":"匕","pinyin":"lǎo","meaning":"old/老"},{"char":"者","structure":"上下","part1":"耂","part2":"日","pinyin":"zhě","meaning":"person/者"},{"char":"考","structure":"上下","part1":"耂","part2":"丂","pinyin":"kǎo","meaning":"test/考"},{"char":"只","structure":"上下","part1":"口","part2":"八","pinyin":"zhǐ","meaning":"only/只"},{"char":"兄","structure":"上下","part1":"口","part2":"儿","pinyin":"xiōng","meaning":"brother/兄"},{"char":"另","structure":"上下","part1":"口","part2":"力","pinyin":"lìng","meaning":"other/另"},{"char":"呆","structure":"上下","part1":"口","part2":"木","pinyin":"dāi","meaning":"stay/呆"},{"char":"台","structure":"上下","part1":"厶","part2":"口","pinyin":"tái","meaning":"platform/台"},{"char":"奇","structure":"上下","part1":"大","part2":"可","pinyin":"qí","meaning":"strange/奇"},{"char":"夺","structure":"上下","part1":"大","part2":"寸","pinyin":"duó","meaning":"seize/夺"},{"char":"天","structure":"上下","part1":"一","part2":"大","pinyin":"tiān","meaning":"sky/天"},{"char":"正","structure":"上下","part1":"一","part2":"止","pinyin":"zhèng","meaning":"correct/正"},{"char":"在","structure":"上下","part1":"一","part2":"土","pinyin":"zài","meaning":"at/在"},{"char":"存","structure":"上下","part1":"一","part2":"子","pinyin":"cún","meaning":"exist/存"},{"char":"雪","structure":"上下","part1":"雨","part2":"又","pinyin":"xuě","meaning":"snow/雪"},{"char":"雷","structure":"上下","part1":"雨","part2":"田","pinyin":"léi","meaning":"thunder/雷"},{"char":"零","structure":"上下","part1":"雨","part2":"令","pinyin":"líng","meaning":"zero/零"},{"char":"香","structure":"上下","part1":"禾","part2":"日","pinyin":"xiāng","meaning":"fragrant/香"},{"char":"秋","structure":"左右","part1":"禾","part2":"火","pinyin":"qiū","meaning":"autumn/秋"},{"char":"黑","structure":"上下","part1":"口","part2":"灬","pinyin":"hēi","meaning":"black/黑"},{"char":"燕","structure":"上下","part1":"廿","part2":"口","pinyin":"yàn","meaning":"swallow/燕"},{"char":"觉","structure":"上下","part1":"学头","part2":"见","pinyin":"jué","meaning":"feel/觉"},{"char":"学","structure":"上下","part1":"学头","part2":"子","pinyin":"xué","meaning":"study/学"},{"char":"备","structure":"上下","part1":"夂","part2":"田","pinyin":"bèi","meaning":"prepare/备"},{"char":"条","structure":"上下","part1":"夂","part2":"木","pinyin":"tiáo","meaning":"strip/条"},{"char":"卖","structure":"上下","part1":"十","part2":"买","pinyin":"mài","meaning":"sell/卖"},{"char":"直","structure":"上下","part1":"十","part2":"目","pinyin":"zhí","meaning":"straight/直"},{"char":"真","structure":"上下","part1":"十","part2":"目","pinyin":"zhēn","meaning":"true/真"},{"char":"着","structure":"上下","part1":"羊","part2":"目","pinyin":"zhe","meaning":"particle/着"},{"char":"看","structure":"上下","part1":"手","part2":"目","pinyin":"kàn","meaning":"look/看"},{"char":"步","structure":"上下","part1":"止","part2":"少","pinyin":"bù","meaning":"step/步"},{"char":"此","structure":"左右","part1":"止","part2":"匕","pinyin":"cǐ","meaning":"this/此"},{"char":"你","structure":"左右","part1":"亻","part2":"尔","pinyin":"nǐ","meaning":"you/你"},{"char":"他","structure":"左右","part1":"亻","part2":"也","pinyin":"tā","meaning":"he/他"},{"char":"她","structure":"左右","part1":"女","part2":"也","pinyin":"tā","meaning":"she/她"},{"char":"好","structure":"左右","part1":"女","part2":"子","pinyin":"hǎo","meaning":"good/好"},{"char":"妈","structure":"左右","part1":"女","part2":"马","pinyin":"mā","meaning":"mom/妈"},{"char":"姐","structure":"左右","part1":"女","part2":"且","pinyin":"jiě","meaning":"sister/姐"},{"char":"妹","structure":"左右","part1":"女","part2":"未","pinyin":"mèi","meaning":"sister/妹"},{"char":"奶","structure":"左右","part1":"女","part2":"乃","pinyin":"nǎi","meaning":"milk/奶"},{"char":"如","structure":"左右","part1":"女","part2":"口","pinyin":"rú","meaning":"if/如"},{"char":"妇","structure":"左右","part1":"女","part2":"彐","pinyin":"fù","meaning":"woman/妇"},{"char":"们","structure":"左右","part1":"亻","part2":"门","pinyin":"men","meaning":"plural/们"},{"char":"住","structure":"左右","part1":"亻","part2":"主","pinyin":"zhù","meaning":"live/住"},{"char":"做","structure":"左右","part1":"亻","part2":"故","pinyin":"zuò","meaning":"do/做"},{"char":"作","structure":"左右","part1":"亻","part2":"乍","pinyin":"zuò","meaning":"work/作"},{"char":"借","structure":"左右","part1":"亻","part2":"昔","pinyin":"jiè","meaning":"borrow/借"},{"char":"位","structure":"左右","part1":"亻","part2":"立","pinyin":"wèi","meaning":"position/位"},{"char":"伴","structure":"左右","part1":"亻","part2":"半","pinyin":"bàn","meaning":"companion/伴"},{"char":"伸","structure":"左右","part1":"亻","part2":"申","pinyin":"shēn","meaning":"stretch/伸"},{"char":"件","structure":"左右","part1":"亻","part2":"牛","pinyin":"jiàn","meaning":"piece/件"},{"char":"价","structure":"左右","part1":"亻","part2":"介","pinyin":"jià","meaning":"price/价"},{"char":"休","structure":"左右","part1":"亻","part2":"木","pinyin":"xiū","meaning":"rest/休"},{"char":"明","structure":"左右","part1":"日","part2":"月","pinyin":"míng","meaning":"bright/明"},{"char":"昨","structure":"左右","part1":"日","part2":"乍","pinyin":"zuó","meaning":"yesterday/昨"},{"char":"时","structure":"左右","part1":"日","part2":"寸","pinyin":"shí","meaning":"time/时"},{"char":"晚","structure":"左右","part1":"日","part2":"免","pinyin":"wǎn","meaning":"evening/晚"},{"char":"晴","structure":"左右","part1":"日","part2":"青","pinyin":"qíng","meaning":"clear/晴"},{"char":"暖","structure":"左右","part1":"日","part2":"爰","pinyin":"nuǎn","meaning":"warm/暖"},{"char":"映","structure":"左右","part1":"日","part2":"央","pinyin":"yìng","meaning":"reflect/映"},{"char":"旺","structure":"左右","part1":"日","part2":"王","pinyin":"wàng","meaning":"prosper/旺"},{"char":"机","structure":"左右","part1":"木","part2":"几","pinyin":"jī","meaning":"machine/机"},{"char":"杯","structure":"左右","part1":"木","part2":"不","pinyin":"bēi","meaning":"cup/杯"},{"char":"椅","structure":"左右","part1":"木","part2":"奇","pinyin":"yǐ","meaning":"chair/椅"},{"char":"校","structure":"左右","part1":"木","part2":"交","pinyin":"xiào","meaning":"school/校"},{"char":"样","structure":"左右","part1":"木","part2":"羊","pinyin":"yàng","meaning":"sample/样"},{"char":"树","structure":"左右","part1":"木","part2":"对","pinyin":"shù","meaning":"tree/树"},{"char":"板","structure":"左右","part1":"木","part2":"反","pinyin":"bǎn","meaning":"board/板"},{"char":"林","structure":"左右","part1":"木","part2":"木","pinyin":"lín","meaning":"forest/林"},{"char":"相","structure":"左右","part1":"木","part2":"目","pinyin":"xiāng","meaning":"mutual/相"},{"char":"棵","structure":"左右","part1":"木","part2":"果","pinyin":"kē","meaning":"tree/棵"},{"char":"植","structure":"左右","part1":"木","part2":"直","pinyin":"zhí","meaning":"plant/植"},{"char":"狗","structure":"左右","part1":"犭","part2":"句","pinyin":"gǒu","meaning":"dog/狗"},{"char":"猫","structure":"左右","part1":"犭","part2":"苗","pinyin":"māo","meaning":"cat/猫"},{"char":"猜","structure":"左右","part1":"犭","part2":"青","pinyin":"cāi","meaning":"guess/猜"},{"char":"猪","structure":"左右","part1":"犭","part2":"者","pinyin":"zhū","meaning":"pig/猪"},{"char":"独","structure":"左右","part1":"犭","part2":"虫","pinyin":"dú","meaning":"alone/独"},{"char":"冷","structure":"左右","part1":"冫","part2":"令","pinyin":"lěng","meaning":"cold/冷"},{"char":"冻","structure":"左右","part1":"冫","part2":"东","pinyin":"dòng","meaning":"freeze/冻"},{"char":"冰","structure":"左右","part1":"冫","part2":"水","pinyin":"bīng","meaning":"ice/冰"},{"char":"凉","structure":"左右","part1":"冫","part2":"京","pinyin":"liáng","meaning":"cool/凉"},{"char":"决","structure":"左右","part1":"冫","part2":"夬","pinyin":"jué","meaning":"decide/决"},{"char":"次","structure":"左右","part1":"冫","part2":"欠","pinyin":"cì","meaning":"second/次"},{"char":"汉","structure":"左右","part1":"氵","part2":"又","pinyin":"hàn","meaning":"Chinese/汉"},{"char":"没","structure":"左右","part1":"氵","part2":"殳","pinyin":"méi","meaning":"not/没"},{"char":"河","structure":"左右","part1":"氵","part2":"可","pinyin":"hé","meaning":"river/河"},{"char":"海","structure":"左右","part1":"氵","part2":"每","pinyin":"hǎi","meaning":"sea/海"},{"char":"清","structure":"左右","part1":"氵","part2":"青","pinyin":"qīng","meaning":"clear/清"},{"char":"活","structure":"左右","part1":"氵","part2":"舌","pinyin":"huó","meaning":"live/活"},{"char":"治","structure":"左右","part1":"氵","part2":"台","pinyin":"zhì","meaning":"govern/治"},{"char":"洋","structure":"左右","part1":"氵","part2":"羊","pinyin":"yáng","meaning":"ocean/洋"},{"char":"洗","structure":"左右","part1":"氵","part2":"先","pinyin":"xǐ","meaning":"wash/洗"},{"char":"深","structure":"左右","part1":"氵","part2":"罙","pinyin":"shēn","meaning":"deep/深"},{"char":"酒","structure":"左右","part1":"氵","part2":"酉","pinyin":"jiǔ","meaning":"wine/酒"},{"char":"沙","structure":"左右","part1":"氵","part2":"少","pinyin":"shā","meaning":"sand/沙"},{"char":"说","structure":"左右","part1":"讠","part2":"兑","pinyin":"shuō","meaning":"say/说"},{"char":"话","structure":"左右","part1":"讠","part2":"舌","pinyin":"huà","meaning":"speech/话"},{"char":"语","structure":"左右","part1":"讠","part2":"吾","pinyin":"yǔ","meaning":"language/语"},{"char":"请","structure":"左右","part1":"讠","part2":"青","pinyin":"qǐng","meaning":"please/请"},{"char":"读","structure":"左右","part1":"讠","part2":"卖","pinyin":"dú","meaning":"read/读"},{"char":"谁","structure":"左右","part1":"讠","part2":"隹","pinyin":"shuí","meaning":"who/谁"},{"char":"认","structure":"左右","part1":"讠","part2":"人","pinyin":"rèn","meaning":"know/认"},{"char":"识","structure":"左右","part1":"讠","part2":"只","pinyin":"shí","meaning":"know/识"},{"char":"记","structure":"左右","part1":"讠","part2":"己","pinyin":"jì","meaning":"record/记"},{"char":"课","structure":"左右","part1":"讠","part2":"果","pinyin":"kè","meaning":"class/课"},{"char":"谢","structure":"左右","part1":"讠","part2":"射","pinyin":"xiè","meaning":"thank/谢"},{"char":"讲","structure":"左右","part1":"讠","part2":"井","pinyin":"jiǎng","meaning":"speak/讲"},{"char":"让","structure":"左右","part1":"讠","part2":"上","pinyin":"ràng","meaning":"let/让"},{"char":"诉","structure":"左右","part1":"讠","part2":"斥","pinyin":"sù","meaning":"tell/诉"},{"char":"论","structure":"左右","part1":"讠","part2":"仑","pinyin":"lùn","meaning":"discuss/论"},{"char":"设","structure":"左右","part1":"讠","part2":"殳","pinyin":"shè","meaning":"set/设"},{"char":"欢","structure":"左右","part1":"又","part2":"欠","pinyin":"huān","meaning":"happy/欢"},{"char":"歌","structure":"左右","part1":"哥","part2":"欠","pinyin":"gē","meaning":"song/歌"},{"char":"加","structure":"左右","part1":"力","part2":"口","pinyin":"jiā","meaning":"add/加"},{"char":"影","structure":"左右","part1":"景","part2":"彡","pinyin":"yǐng","meaning":"shadow/影"},{"char":"绿","structure":"左右","part1":"纟","part2":"录","pinyin":"lǜ","meaning":"green/绿"},{"char":"绝","structure":"左右","part1":"纟","part2":"色","pinyin":"jué","meaning":"absolute/绝"},{"char":"饮","structure":"左右","part1":"饣","part2":"欠","pinyin":"yǐn","meaning":"drink/饮"},{"char":"鲜","structure":"左右","part1":"鱼","part2":"羊","pinyin":"xiān","meaning":"fresh/鲜"}];
+
+// ========== 游戏状态 ==========
+let gameState = {
+  mode: 'all',
+  count: 10,
+  questions: [],
+  currentIdx: 0,
+  correctCount: 0,
+  wrongCount: 0,
+  errors: [],
+  filledSlots: {},
+  usedParts: new Set(),
+  questionAnswered: false,
+};
+
+// ========== 初始化 ==========
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    gameState.mode = btn.dataset.mode;
+  });
+});
+
+document.querySelectorAll('.count-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    gameState.count = parseInt(btn.dataset.count);
+  });
+});
+
+// ========== 开始游戏 ==========
+function startGame() {
+  // 筛选题目
+  let pool = CHARS.filter(c => {
+    if (gameState.mode === 'all') return true;
+    return c.structure === gameState.mode;
+  });
+
+  // 随机抽取
+  pool = shuffleArray([...pool]);
+  gameState.questions = pool.slice(0, Math.min(gameState.count, pool.length));
+  gameState.currentIdx = 0;
+  gameState.correctCount = 0;
+  gameState.wrongCount = 0;
+  gameState.errors = [];
+
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('resultScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'block';
+
+  document.getElementById('totalQ').textContent = gameState.questions.length;
+  loadQuestion();
+}
+
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ========== 加载题目 ==========
+function loadQuestion() {
+  if (gameState.currentIdx >= gameState.questions.length) {
+    showResults();
+    return;
+  }
+
+  const q = gameState.questions[gameState.currentIdx];
+  gameState.filledSlots = {};
+  gameState.usedParts = new Set();
+  gameState.questionAnswered = false;
+
+  // 更新进度
+  document.getElementById('currentQ').textContent = gameState.currentIdx + 1;
+  document.getElementById('correctCount').textContent = gameState.correctCount;
+  document.getElementById('wrongCount').textContent = gameState.wrongCount;
+  const pct = (gameState.currentIdx / gameState.questions.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  // 题目信息
+  const structTag = q.structure === '上下'
+    ? '<span class="structure-tag tb">上下结构</span>'
+    : '<span class="structure-tag lr">左右结构</span>';
+  document.getElementById('questionInfo').innerHTML =
+    `将部件拖入虚线框，拼出完整汉字 ${structTag}`;
+
+  // 汉字提示
+  document.getElementById('charDisplay').innerHTML = `
+    <div class="meaning">${q.meaning}</div>
+    <div class="pinyin">${q.pinyin}</div>
+  `;
+
+  // 创建拼图槽位
+  createPuzzleSlots(q);
+
+  // 创建部件选项（正确部件 + 干扰项）
+  createPartTiles(q);
+
+  // 清空反馈
+  document.getElementById('feedback').innerHTML = '';
+}
+
+// ========== 创建拼图槽位 ==========
+function createPuzzleSlots(q) {
+  const display = document.getElementById('charDisplay');
+  const structClass = q.structure === '上下' ? 'tb' : 'lr';
+
+  const slotsHtml = `
+    <div class="puzzle-area">
+      <div class="puzzle-slot ${structClass}">
+        <div class="sub-slot" data-slot="0"></div>
+        <div class="sub-slot" data-slot="1"></div>
+      </div>
+    </div>
+  `;
+
+  display.innerHTML = `
+    <div class="meaning">${q.meaning}</div>
+    <div class="pinyin">${q.pinyin}</div>
+    ${slotsHtml}
+  `;
+
+  // 设置拖放事件
+  setTimeout(() => {
+    document.querySelectorAll('.sub-slot').forEach(slot => {
+      setupDropZone(slot);
+    });
+  }, 50);
+}
+
+// ========== 创建部件选项 ==========
+function createPartTiles(q) {
+  const container = document.getElementById('partsContainer');
+  container.innerHTML = '';
+
+  // 正确部件
+  const correctParts = [q.part1, q.part2];
+
+  // 从其他汉字中随机抽取干扰部件
+  const otherChars = CHARS.filter(c => c.char !== q.char);
+  const distractorPool = [];
+  otherChars.forEach(c => {
+    if (!correctParts.includes(c.part1)) distractorPool.push(c.part1);
+    if (!correctParts.includes(c.part2)) distractorPool.push(c.part2);
+  });
+
+  const distractors = shuffleArray(distractorPool).slice(0, 3);
+  const allParts = shuffleArray([...correctParts, ...distractors]);
+
+  allParts.forEach((part, idx) => {
+    const tile = document.createElement('div');
+    tile.className = 'part-tile';
+    tile.textContent = part;
+    tile.dataset.part = part;
+    tile.dataset.id = idx;
+    tile.draggable = true;
+
+    // HTML5 拖拽
+    tile.addEventListener('dragstart', (e) => {
+      if (tile.classList.contains('used')) { e.preventDefault(); return; }
+      e.dataTransfer.setData('text/plain', part);
+      e.dataTransfer.setData('tileId', idx);
+      tile.classList.add('dragging');
+    });
+    tile.addEventListener('dragend', () => {
+      tile.classList.remove('dragging');
+    });
+
+    // 触摸拖拽
+    setupTouchDrag(tile, part, idx);
+
+    container.appendChild(tile);
+  });
+}
+
+// ========== HTML5 拖放 ==========
+function setupDropZone(slot) {
+  slot.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    slot.classList.add('drag-over');
+  });
+  slot.addEventListener('dragleave', () => {
+    slot.classList.remove('drag-over');
+  });
+  slot.addEventListener('drop', (e) => {
+    e.preventDefault();
+    slot.classList.remove('drag-over');
+    const part = e.dataTransfer.getData('text/plain');
+    const tileId = e.dataTransfer.getData('tileId');
+    placePart(slot, part, tileId);
+  });
+}
+
+// ========== 触摸拖拽 ==========
+function setupTouchDrag(tile, part, tileId) {
+  let touchClone = null;
+  let offsetX = 0, offsetY = 0;
+
+  tile.addEventListener('touchstart', (e) => {
+    if (tile.classList.contains('used')) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = tile.getBoundingClientRect();
+    offsetX = touch.clientX - rect.left;
+    offsetY = touch.clientY - rect.top;
+
+    touchClone = tile.cloneNode(true);
+    touchClone.style.position = 'fixed';
+    touchClone.style.left = (touch.clientX - offsetX) + 'px';
+    touchClone.style.top = (touch.clientY - offsetY) + 'px';
+    touchClone.style.pointerEvents = 'none';
+    touchClone.style.zIndex = '10001';
+    touchClone.style.opacity = '0.8';
+    document.body.appendChild(touchClone);
+    tile.classList.add('dragging');
+  }, { passive: false });
+
+  tile.addEventListener('touchmove', (e) => {
+    if (!touchClone) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    touchClone.style.left = (touch.clientX - offsetX) + 'px';
+    touchClone.style.top = (touch.clientY - offsetY) + 'px';
+
+    // 高亮目标槽位
+    document.querySelectorAll('.sub-slot').forEach(s => s.classList.remove('drag-over'));
+    const target = getTouchTarget(touch.clientX, touch.clientY);
+    if (target) target.classList.add('drag-over');
+  }, { passive: false });
+
+  tile.addEventListener('touchend', (e) => {
+    if (!touchClone) return;
+    e.preventDefault();
+    const touch = e.changedTouches[0];
+    const target = getTouchTarget(touch.clientX, touch.clientY);
+    document.querySelectorAll('.sub-slot').forEach(s => s.classList.remove('drag-over'));
+
+    if (target) {
+      placePart(target, part, tileId);
+    }
+
+    touchClone.remove();
+    touchClone = null;
+    tile.classList.remove('dragging');
+  }, { passive: false });
+}
+
+function getTouchTarget(x, y) {
+  const slots = document.querySelectorAll('.sub-slot');
+  for (let slot of slots) {
+    const rect = slot.getBoundingClientRect();
+    if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+      return slot;
+    }
+  }
+  return null;
+}
+
+// ========== 放置部件 ==========
+function placePart(slot, part, tileId) {
+  if (gameState.questionAnswered) return;
+  if (slot.classList.contains('filled')) return;
+
+  const slotIdx = parseInt(slot.dataset.slot);
+  const q = gameState.questions[gameState.currentIdx];
+  const correctPart = slotIdx === 0 ? q.part1 : q.part2;
+
+  // 填入部件
+  slot.textContent = part;
+  slot.classList.add('filled');
+  gameState.filledSlots[slotIdx] = part;
+
+  // 标记部件已使用
+  const tile = document.querySelector(`.part-tile[data-id="${tileId}"]`);
+  if (tile) tile.classList.add('used');
+
+  // 检查是否正确
+  if (part === correctPart) {
+    slot.classList.add('correct');
+  } else {
+    slot.classList.add('wrong');
+  }
+
+  // 检查是否两个槽位都填满
+  if (gameState.filledSlots[0] !== undefined && gameState.filledSlots[1] !== undefined) {
+    checkAnswer();
+  }
+}
+
+// ========== 检查答案 ==========
+function checkAnswer() {
+  const q = gameState.questions[gameState.currentIdx];
+  gameState.questionAnswered = true;
+
+  const slot0 = document.querySelector('.sub-slot[data-slot="0"]');
+  const slot1 = document.querySelector('.sub-slot[data-slot="1"]');
+  const part0 = gameState.filledSlots[0];
+  const part1 = gameState.filledSlots[1];
+
+  const isCorrect = (part0 === q.part1 && part1 === q.part2);
+
+  if (isCorrect) {
+    gameState.correctCount++;
+    document.getElementById('correctCount').textContent = gameState.correctCount;
+
+    // 显示完整汉字
+    slot0.parentElement.innerHTML = `<div class="completed-char">${q.char}</div>`;
+
+    triggerCelebration();
+
+    document.getElementById('feedback').innerHTML =
+      `<div class="correct">✅ 太棒了！「${q.char}」= ${q.part1} + ${q.part1}</div>
+       <div class="hint">${q.structure}结构 · ${q.pinyin} · ${q.meaning}</div>`;
+    document.getElementById('feedback').className = 'feedback correct';
+
+    setTimeout(() => {
+      gameState.currentIdx++;
+      loadQuestion();
+    }, 1800);
+  } else {
+    gameState.wrongCount++;
+    document.getElementById('wrongCount').textContent = gameState.wrongCount;
+
+    // 记录错题
+    const userAnswer = part0 + ' + ' + part1;
+    const correctAnswer = q.part1 + ' + ' + q.part2;
+    gameState.errors.push({
+      char: q.char,
+      structure: q.structure,
+      pinyin: q.pinyin,
+      meaning: q.meaning,
+      userAnswer: userAnswer,
+      correctAnswer: correctAnswer,
+      userPart0: part0,
+      userPart1: part1,
+      correctPart0: q.part1,
+      correctPart1: q.part2,
+    });
+
+    document.getElementById('feedback').innerHTML =
+      `<div class="wrong">❌ 正确答案：${q.part1} + ${q.part2} = ${q.char}</div>
+       <div class="hint">你填的：${part0} + ${part1} · ${q.structure}结构 · ${q.pinyin} · ${q.meaning}</div>`;
+    document.getElementById('feedback').className = 'feedback wrong';
+
+    // 显示正确答案
+    setTimeout(() => {
+      slot0.textContent = q.part1;
+      slot1.textContent = q.part2;
+      slot0.classList.remove('wrong');
+      slot1.classList.remove('wrong');
+      slot0.classList.add('correct');
+      slot1.classList.add('correct');
+      slot0.parentElement.innerHTML = `<div class="completed-char">${q.char}</div>`;
+    }, 1000);
+
+    setTimeout(() => {
+      gameState.currentIdx++;
+      loadQuestion();
+    }, 2800);
+  }
+}
+
+// ========== 庆祝特效 ==========
+function triggerCelebration() {
+  const colors = ['#e74c3c', '#3498db', '#27ae60', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22'];
+  const texts = ['太棒了！', '厉害！', '完美！', '好样的！', '继续加油！', '优秀！'];
+  const celebration = document.getElementById('celebration');
+
+  // 彩纸
+  for (let i = 0; i < 60; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti';
+    confetti.style.left = Math.random() * 100 + '%';
+    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+    confetti.style.animationDuration = (1.5 + Math.random() * 1) + 's';
+    const size = 6 + Math.random() * 8;
+    confetti.style.width = size + 'px';
+    confetti.style.height = size + 'px';
+    if (Math.random() > 0.5) {
+      confetti.style.borderRadius = '50%';
+    }
+    celebration.appendChild(confetti);
+    setTimeout(() => confetti.remove(), 3000);
+  }
+
+  // 鼓励文字
+  const text = document.createElement('div');
+  text.className = 'celebration-text';
+  text.textContent = texts[Math.floor(Math.random() * texts.length)];
+  text.style.color = colors[Math.floor(Math.random() * colors.length)];
+  celebration.appendChild(text);
+  setTimeout(() => text.remove(), 1500);
+}
+
+// ========== 跳过/退出 ==========
+function skipQuestion() {
+  const q = gameState.questions[gameState.currentIdx];
+  gameState.wrongCount++;
+  gameState.errors.push({
+    char: q.char,
+    structure: q.structure,
+    pinyin: q.pinyin,
+    meaning: q.meaning,
+    userAnswer: '跳过',
+    correctAnswer: q.part1 + ' + ' + q.part2,
+    userPart0: '?',
+    userPart1: '?',
+    correctPart0: q.part1,
+    correctPart1: q.part2,
+  });
+  document.getElementById('wrongCount').textContent = gameState.wrongCount;
+  gameState.currentIdx++;
+  loadQuestion();
+}
+
+function quitGame() {
+  if (confirm('确定退出当前游戏吗？')) {
+    showResults();
+  }
+}
+
+// ========== 结果界面 ==========
+function showResults() {
+  document.getElementById('gameScreen').style.display = 'none';
+  document.getElementById('resultScreen').style.display = 'block';
+  document.getElementById('progressFill').style.width = '100%';
+
+  const total = gameState.questions.length;
+  const correct = gameState.correctCount;
+  const wrong = gameState.wrongCount;
+  const rate = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+  document.getElementById('finalCorrect').textContent = correct;
+  document.getElementById('finalWrong').textContent = wrong;
+  document.getElementById('finalRate').textContent = rate + '%';
+
+  let title, message;
+  if (rate >= 90) { title = '🏆 太厉害了！'; message = '你是汉字部件大师！'; }
+  else if (rate >= 70) { title = '👍 做得不错！'; message = '继续练习，你会更棒！'; }
+  else if (rate >= 50) { title = '💪 还需加油！'; message = '多练习，你能做到的！'; }
+  else { title = '📚 别灰心！'; message = '继续努力，熟能生巧！'; }
+
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultMessage').textContent = message;
+
+  // 错题表
+  const errorContainer = document.getElementById('errorListContainer');
+  if (gameState.errors.length === 0) {
+    errorContainer.innerHTML = '<div class="no-errors">🎉 全部答对，没有错题！</div>';
+  } else {
+    let html = '<table class="error-table"><thead><tr><th>序号</th><th>汉字</th><th>结构</th><th>拼音</th><th>你的答案</th><th>正确答案</th></tr></thead><tbody>';
+    gameState.errors.forEach((err, i) => {
+      html += `<tr>
+        <td>${i + 1}</td>
+        <td style="font-size:20px;font-weight:700;">${err.char}</td>
+        <td>${err.structure}</td>
+        <td>${err.pinyin}</td>
+        <td><span class="wrong-answer">${err.userAnswer}</span></td>
+        <td><span class="correct-answer">${err.correctAnswer}</span></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    errorContainer.innerHTML = html;
+  }
+
+  // 部首统计
+  showRadicalStats();
+}
+
+// ========== 部首统计 ==========
+function showRadicalStats() {
+  const allChars = gameState.questions.map(q => q);
+  const partCount = {};
+
+  allChars.forEach(c => {
+    [c.part1, c.part2].forEach(p => {
+      if (p) partCount[p] = (partCount[p] || 0) + 1;
+    });
+  });
+
+  const sorted = Object.entries(partCount).sort((a, b) => b[1] - a[1]).slice(0, 12);
+
+  const html = `
+    <h4>📊 本次练习涉及的常见部件</h4>
+    <div class="radical-list">
+      ${sorted.map(([part, count]) => `
+        <span class="radical-tag">${part} <span class="count">${count}</span></span>
+      `).join('')}
+    </div>
+  `;
+
+  document.getElementById('radicalStats').innerHTML = html;
+}
+
+// ========== 导出错题CSV ==========
+function exportErrorCSV() {
+  if (gameState.errors.length === 0) {
+    alert('没有错题可导出！');
+    return;
+  }
+
+  let csv = '\uFEFF序号,汉字,结构,拼音,释义,你的答案,正确答案\n';
+  gameState.errors.forEach((err, i) => {
+    csv += `${i+1},${err.char},${err.structure},${err.pinyin},${err.meaning},${err.userAnswer},${err.correctAnswer}\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = '汉字部件错题表.csv';
+  link.click();
+}
+
+// ========== 重玩/返回 ==========
+function restartGame() {
+  document.getElementById('resultScreen').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'flex';
+}
+
+function goHome() {
+  document.getElementById('resultScreen').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'flex';
+}
+</script>
+
+</body>
+</html>
